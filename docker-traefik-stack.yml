@@ -5,52 +5,10 @@ volumes:
     grafana_data: {}
 
 networks:
-  monitor-net:
-    driver: overlay
-    name: inbound
-  traefik:
-    driver: overlay
-    name: traefik
+  traefik_overlay_net:
+    external: true
 
 services:
-  traefik:
-    image: traefik:v1.7.12-alpine
-    command:
-      - "--logLevel=DEBUG"
-      - "--api"
-      - "--metrics"
-      - "--metrics.prometheus.buckets=0.1,0.3,1.2,5.0"
-      - "--docker"
-      - "--docker.swarmMode"
-      - "--docker.domain=docker.localhost"
-      - "--docker.watch"
-    networks:
-      - traefik
-      - monitor-net
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - target: 80
-        published: 80
-        mode: host
-      - target: 443
-        published: 443
-        mode: host
-      - target: 8080
-        published: 8080
-        protocol: tcp
-        mode: ingress
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == manager
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-
   prometheus:
     image: prom/prometheus
     volumes:
@@ -62,7 +20,7 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     networks:
-      - monitor-net     
+      - traefik_overlay_net    
     deploy:
       placement:
         constraints:
@@ -89,7 +47,7 @@ services:
     ports:
       - 9100:9100
     networks:
-      - monitor-net
+      - traefik_overlay_net
     deploy:
       mode: global
       restart_policy:
@@ -102,7 +60,7 @@ services:
     volumes:
       - "./alertmanager/:/etc/alertmanager/"
     networks:
-      - monitor-net
+      - traefik_overlay_net
     command:
       - '--config.file=/etc/alertmanager/config.yml'
       - '--storage.path=/alertmanager'
@@ -123,7 +81,7 @@ services:
     ports:
       - 8088:8080
     networks:
-      - monitor-net
+      - traefik_overlay_net
     deploy:
       mode: global
       restart_policy:
@@ -139,7 +97,7 @@ services:
     env_file:
       - ./grafana/config.monitoring
     networks:
-      - monitor-net
+      - traefik_overlay_net
     user: "472"
     deploy:
       placement:
