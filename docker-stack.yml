@@ -63,7 +63,7 @@ services:
     ports:
       - 9093:9093
     volumes:
-      - alertmanager:/etc/alertmanager/"
+      - alertmanager:/etc/alertmanager/
     networks:
       - traefik_overlay_net
     command:
