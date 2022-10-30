@@ -102,7 +102,7 @@ services:
       - grafana_data:/var/lib/grafana
       - grafana_provisioning:/etc/grafana/provisioning/
     env_file:
-      - etc/grafana/config.monitoring
+      - /etc/grafana/config.monitoring
     networks:
       - traefik_overlay_net
     user: "472"
